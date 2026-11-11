@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PC Build Lab</title>
+<meta name="description" content="Build a gaming PC part by part in 3D, in your browser. Make the classic mistakes for free before you make them with real parts.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"}}</script>
+<style>
+:root{--paper:#f2ebdd;--paper-hi:#fbf7ee;--ink:#1d1b16;--ink2:rgba(29,27,22,.76);--ink3:rgba(29,27,22,.56);--rule:rgba(29,27,22,.14);--accent:#2f4bd0;--bad:#b9391f;--ok:#2c7a4b;--warn:#a8721a;
+--serif:Fraunces,Georgia,serif;--sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+#hero{position:relative;height:100vh;height:100svh;min-height:600px;overflow:hidden;background:#e9e1d1}
+#stage,#stage canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block;touch-action:none}
+#stage canvas{cursor:grab}#stage canvas:active{cursor:grabbing}
+.vig{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 45%,transparent 55%,rgba(60,40,10,.2));pointer-events:none}
+#pins{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.frost{position:absolute;background:rgba(250,246,238,.76);-webkit-backdrop-filter:blur(24px) saturate(1.25);backdrop-filter:blur(24px) saturate(1.25);border-radius:20px;box-shadow:0 0 0 1px rgba(29,27,22,.08),0 1px 0 rgba(255,255,255,.8) inset,0 34px 60px -30px rgba(40,28,10,.55),0 4px 14px -6px rgba(40,28,10,.22)}
+header{position:absolute;left:28px;right:28px;top:20px;display:flex;align-items:center;justify-content:space-between;z-index:5;pointer-events:none}
+header>*{pointer-events:auto}
+.logo{display:flex;align-items:center;gap:11px;font:600 23px var(--serif);letter-spacing:-.3px}
+.logo i{width:23px;height:23px;border:2px solid var(--accent);border-radius:6px;position:relative}
+.logo i:after{content:"";position:absolute;inset:4.5px;background:var(--accent);border-radius:2px}
+nav{display:flex;gap:4px;align-items:center;padding:6px;border-radius:999px;position:static!important}
+nav a{font:500 14.5px var(--sans);padding:8px 15px;border-radius:999px;color:var(--ink2);text-decoration:none}
+nav a.on{background:var(--ink);color:var(--paper-hi)}
+nav .bud{font:600 12.5px var(--mono);padding:8px 13px;border-left:1px solid var(--rule);margin-left:4px;letter-spacing:.3px}
+.mono{font:600 11.5px var(--mono);letter-spacing:1.4px;text-transform:uppercase;color:var(--ink3)}
+.left{left:28px;top:84px;width:356px;padding:22px 24px 18px;z-index:4}
+.left h1{font:500 clamp(34px,4.6vh,44px)/1.03 var(--serif);letter-spacing:-1px;margin:10px 0 10px}
+.left p{font:400 15.5px/1.46 var(--sans);color:var(--ink2)}
+.left .mono.bad{color:var(--bad)}.left .mono.ok{color:var(--ok)}.left .mono.warn{color:var(--warn)}
+.btns{display:flex;gap:8px;margin:16px 0 14px;flex-wrap:wrap}
+.btn{font:600 14.5px var(--sans);padding:12px 18px;border-radius:12px;background:var(--accent);color:#fff;box-shadow:0 10px 20px -10px var(--accent);transition:transform .12s,filter .12s}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:scale(.97)}
+.btn.g{background:rgba(29,27,22,.06);color:var(--ink);box-shadow:inset 0 0 0 1px var(--rule)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.steps{border-top:1px solid var(--rule);padding-top:6px}
+.steps button{display:flex;width:100%;align-items:center;gap:11px;font:500 14px var(--sans);padding:5.5px 0;color:var(--ink3);text-align:left;cursor:default}
+.steps b{font:600 11px var(--mono);width:20px;color:var(--ink3)}
+.steps .d{color:var(--ink2);cursor:pointer}.steps .d:hover{color:var(--ink)}
+.steps .d:after{content:"✓";margin-left:auto;color:var(--ok);font-weight:700}
+.steps .d.x:after{content:"✕";color:var(--bad)}
+.steps .a{color:var(--ink);font-weight:650}.steps .a b{color:var(--accent)}
+.steps .a:after{content:"now";margin-left:auto;font:600 10px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--accent);background:rgba(47,75,208,.1);padding:3px 8px;border-radius:99px}
+.right{right:28px;top:84px;width:318px;padding:20px 22px 18px;z-index:4}
+.row{display:grid;grid-template-columns:64px 1fr auto;gap:8px;align-items:baseline;padding:7.5px 0;border-bottom:1px solid var(--rule);font:500 14px var(--sans);color:var(--ink3);transition:color .3s}
+.row s{font:600 10px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:var(--ink3);text-decoration:none}
+.row u{font:600 13px var(--mono);text-decoration:none}
+.row.in{color:var(--ink)}
+.row.act{background:rgba(47,75,208,.08);margin:0 -10px;padding:7.5px 10px;border-radius:9px;border-bottom-color:transparent;color:var(--ink)}
+.tot{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px}
+.tot strong{font:500 34px var(--serif);letter-spacing:-.8px}
+.tot span{font:500 12px var(--mono);color:var(--ink3)}
+.bar{height:6px;border-radius:9px;background:rgba(29,27,22,.1);margin-top:9px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:9px;transition:width .6s}
+.note{font:400 11.5px/1.4 var(--sans);color:var(--ink3);margin-top:9px}
+.bottom{left:50%;transform:translateX(-50%);bottom:22px;display:flex;gap:4px;padding:6px;border-radius:16px;align-items:center;z-index:4;white-space:nowrap}
+.bottom button{font:500 14.5px var(--sans);padding:10px 18px;border-radius:11px;color:var(--ink2)}
+.bottom button.on{background:rgba(29,27,22,.1);color:var(--ink);font-weight:650}
+.bottom i{width:1px;height:22px;background:var(--rule);margin:0 4px}
+.hint{position:absolute;left:34px;bottom:30px;font:500 11px var(--mono);letter-spacing:1px;color:var(--ink3);text-transform:uppercase;z-index:3}
+.pin{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;will-change:transform}
+.pin b{position:absolute;left:-13px;top:-13px;width:26px;height:26px;border-radius:50%;background:var(--paper-hi);border:1.5px solid var(--ink);display:grid;place-items:center;font:700 11.5px var(--mono);box-shadow:0 5px 10px -4px rgba(0,0,0,.45);transition:transform .15s}
+.pin:hover b{transform:scale(1.15)}
+.pin.on b{background:var(--accent);border-color:#fff;color:#fff;box-shadow:0 0 0 6px rgba(47,75,208,.22),0 5px 10px -4px rgba(0,0,0,.45)}
+.pin span{display:none;position:absolute;left:22px;top:-16px;width:max-content;max-width:250px;font:400 13px/1.4 var(--sans);background:var(--ink);color:var(--paper-hi);padding:9px 13px;border-radius:11px;box-shadow:0 10px 18px -8px rgba(0,0,0,.5)}
+.pin span strong{display:block;font-weight:650;font-size:13.5px;margin-bottom:2px}
+.pin.on span{display:block}.pin.on{z-index:3}
+.pin.flip span{left:auto;right:22px}
+.callout b{background:var(--bad);border-color:#fff;color:#fff;box-shadow:0 0 0 6px rgba(185,57,31,.25)}
+.callout span{display:block;font-weight:600}
+.cards{left:28px;right:28px;bottom:22px;display:none;grid-template-columns:repeat(4,1fr);overflow:hidden;z-index:4}
+body.test .cards{display:grid}body.test .bottom,body.test .hint,body.test .steps{display:none}body.test .btns{margin-bottom:2px}
+.card{padding:15px 20px 15px;border-right:1px solid var(--rule);min-width:0}.card:last-child{border:0}
+.card .v{font:500 38px/1.05 var(--serif);letter-spacing:-1px;margin:5px 0 8px;display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums}
+.card .v small{font:500 13.5px var(--mono);color:var(--ink3);letter-spacing:0}
+.card .n{font:500 11.5px var(--mono);color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card.bad .v{color:var(--bad)}.card.ok .v{color:var(--ok)}.card.warn .v{color:var(--warn)}
+.meter{height:8px;border-radius:9px;background:linear-gradient(90deg,#9fbf7a 0 62%,#e3b04a 62% 79%,#d9603f 79%);position:relative;margin-bottom:8px}
+.meter.flat{background:rgba(29,27,22,.1)}.meter.flat u{position:absolute;left:0;top:0;bottom:0;border-radius:9px;background:var(--accent)}
+.meter i{position:absolute;top:-4px;width:3px;height:16px;border-radius:3px;background:var(--ink);transition:left .12s linear}
+.tag{display:none;font:700 9.5px var(--mono);letter-spacing:1px;padding:3px 8px;border-radius:99px;background:rgba(185,57,31,.12);color:var(--bad);margin-left:8px;vertical-align:middle}
+.card.bad .tag{display:inline-block}
+.dots{display:flex;gap:8px;margin:10px 0 9px}.dots i{width:28px;height:13px;border-radius:4px;background:rgba(29,27,22,.14);transition:all .15s}
+.dots i.r{background:#e2391d;box-shadow:0 0 12px #e2391d}.dots i.w{background:#fff;box-shadow:0 0 12px #fff,0 0 0 1px rgba(29,27,22,.2)}.dots i.g{background:#44b56e;box-shadow:0 0 10px #44b56e}
+#load{position:absolute;inset:0;display:grid;place-items:center;background:var(--paper);z-index:9;font:500 13px var(--mono);letter-spacing:1.4px;text-transform:uppercase;color:var(--ink3);transition:opacity .6s}
+#load.off{opacity:0;pointer-events:none}
+/* lesson */
+main{max-width:1060px;margin:0 auto;padding:72px 28px 40px}
+.sec{display:flex;align-items:baseline;gap:14px;margin:0 0 6px}.sec b{font:600 12px var(--mono);color:var(--accent);letter-spacing:1.4px}
+main h2{font:500 clamp(30px,4vw,44px)/1.08 var(--serif);letter-spacing:-1px;margin-bottom:14px}
+main .lead{font:400 19px/1.55 var(--serif);color:var(--ink2);max-width:720px;margin-bottom:30px}
+.cells{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--rule);border-radius:16px;background:var(--paper-hi);overflow:hidden;margin-bottom:64px}
+.cells div{padding:16px 18px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.cells strong{display:block;font:500 22px var(--serif);margin-top:6px}
+.parts{display:grid;grid-template-columns:1fr 1fr;gap:0 40px;margin-bottom:72px}
+.parts button{display:grid;grid-template-columns:34px 1fr;gap:12px;text-align:left;padding:16px 0;border-top:1px solid var(--rule)}
+.parts button:hover h3{color:var(--accent)}
+.parts em{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--ink);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal}
+.parts h3{font:600 17px var(--serif);margin-bottom:4px;transition:color .15s}.parts p{font:400 14.5px/1.5 var(--sans);color:var(--ink2)}
+.kills{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:60px}
+.kill{background:var(--paper-hi);border:1px solid var(--rule);border-radius:16px;padding:22px}
+.kill h3{font:500 24px/1.15 var(--serif);letter-spacing:-.4px;margin:10px 0 8px}.kill p{font:400 14.5px/1.5 var(--sans);color:var(--ink2);margin-bottom:16px}
+footer{border-top:1px solid var(--rule);padding:22px 0 50px;font:400 13px/1.5 var(--sans);color:var(--ink3)}
+@media (max-height:780px) and (min-width:861px){.steps button{padding:3.5px 0;font-size:13px}.row{padding:5.5px 0}.left{top:76px}.right{top:76px}}
+@media (max-width:1180px) and (min-width:861px){.right{display:none}}
+@media (max-width:860px){
+ header{left:14px;right:14px;top:12px}.logo{font-size:19px;white-space:nowrap}nav{padding:4px}nav .bud{white-space:nowrap;padding:7px 10px;font-size:11.5px}nav a{display:none}nav .bud{border:0;margin:0}
+ .right,.hint,.steps{display:none}
+ .left{left:10px;right:10px;top:auto;bottom:70px;width:auto;padding:14px 16px 12px;border-radius:16px}
+ .left h1{font-size:26px;margin:5px 0 6px}.left p{font-size:13.5px}.btns{margin:10px 0 2px}.btn{padding:11px 15px;font-size:14px}
+ .bottom{left:10px;right:10px;bottom:10px;transform:none;overflow-x:auto;justify-content:space-between}.bottom button{padding:9px 12px;font-size:13.5px}
+ .cards{left:10px;right:10px;bottom:auto;top:64px;grid-template-columns:1fr 1fr;border-radius:16px}
+ .card{padding:9px 13px}.card .v{font-size:24px;margin:2px 0 5px}.card .n,.dots{display:none}.card:nth-child(2){border-right:0}.card:nth-child(-n+2){border-bottom:1px solid var(--rule)}.card .v.s{font-size:17px!important}
+ body.test .left{bottom:10px}
+ main{padding:48px 18px 30px}.cells{grid-template-columns:1fr 1fr}.parts,.kills{grid-template-columns:1fr}
+ .pin span{max-width:190px}
+}
+</style></head><body>
+<section id="hero">
+<div id="stage"></div><div class="vig"></div><div id="pins"></div>
+<div id="load">Setting up the bench…</div>
+<header><div class="logo"><i></i>PC Build Lab</div>
+<nav class="frost"><a class="on" href="#hero">Build</a><a href="#lesson">Lesson</a><a href="#mistakes">Mistakes</a><span class="bud">BUDGET $1,500</span></nav></header>
+<section class="frost left"><div class="mono" id="sTag"></div><h1 id="sTitle"></h1><p id="sText"></p><div class="btns" id="sBtns"></div><div class="steps" id="steps"></div></section>
+<section class="frost right"><div class="mono" id="bHead">Your build</div><div style="height:6px"></div><div id="rows"></div>
+<div class="tot"><strong id="bSum">$0</strong><span>of $1,368 on the bench</span></div><div class="bar"><i id="bBar"></i></div><div class="note">Prices are rough street prices, for scale only.</div></section>
+<div class="frost bottom"><button data-v="q" class="on">3/4</button><button data-v="top">Top</button><button data-v="side">Side</button><i></i><button id="tEx">Exploded</button><button id="tLb">Labels</button></div>
+<div class="hint">Drag to orbit · scroll to zoom</div>
+<section class="frost cards">
+<div class="card" id="cT"><div class="mono">CPU temp<span class="tag">OVER LIMIT</span></div><div class="v"><span id="vT">--</span><small>°C</small></div><div class="meter"><i id="mT" style="left:0"></i></div><div class="n">limit for this chip: 95 °C</div></div>
+<div class="card" id="cF"><div class="mono">Cooler fan</div><div class="v"><span id="vF">0</span><small>RPM</small></div><div class="meter flat"><u id="mF" style="width:0"></u></div><div class="n" id="nF">waiting for power</div></div>
+<div class="card" id="cP"><div class="mono">Power draw</div><div class="v"><span id="vP">0</span><small>W</small></div><div class="meter flat"><u id="mP" style="width:0"></u></div><div class="n" id="nP">from a 750 W supply</div></div>
+<div class="card" id="cL"><div class="mono">Debug LEDs</div><div class="dots" id="dots"><i></i><i></i><i></i><i></i></div><div class="v s" id="vL" style="font-size:26px;margin-top:0">Standby</div><div class="n">CPU · DRAM · VGA · BOOT</div></div>
+</section>
+</section>
+<main>
+<div class="sec" id="lesson"><b>01 · LESSON</b></div><h2>What is actually on this bench</h2>
+<p class="lead">Eight parts make a gaming PC. Seven of them plug into the eighth. The motherboard is the floor plan: once you can read it, every build is the same puzzle with different pieces.</p>
+<div class="cells"><div><span class="mono">Platform</span><strong>AM5, DDR5</strong></div><div><span class="mono">CPU</span><strong>6 cores, 65 W</strong></div><div><span class="mono">Memory</span><strong>2 × 16 GB</strong></div><div><span class="mono">Graphics</span><strong>220 W card</strong></div><div><span class="mono">Storage</span><strong>1 TB NVMe</strong></div><div><span class="mono">Supply</span><strong>750 W</strong></div><div><span class="mono">Board size</span><strong>305 × 244 mm</strong></div><div><span class="mono">Tools needed</span><strong>1 screwdriver</strong></div></div>
+<div class="sec"><b>02 · THE BOARD</b></div><h2>Twelve places you need to know</h2>
+<p class="lead">Numbered like the labels on the 3D model. Click one and the camera flies to it.</p>
+<div class="parts" id="parts"></div>
+<div class="sec" id="mistakes"><b>03 · MISTAKES</b></div><h2>Three ways to ruin this build</h2>
+<p class="lead">Each one is a real first-build classic. Here they cost nothing, so make them on purpose.</p>
+<div class="kills">
+<div class="kill"><span class="mono">Step 02</span><h3>Skip the thermal paste</h3><p>Metal on metal looks flat but is full of microscopic air gaps, and air is an insulator. The chip runs to its 95 °C limit in seconds.</p><button class="btn g" data-kill="paste">Try it</button></div>
+<div class="kill"><span class="mono">Step 04</span><h3>RAM side by side</h3><p>Two sticks in A1 + A2 share one memory channel. The PC boots and nothing warns you. It is just slower, forever.</p><button class="btn g" data-kill="ram">Try it</button></div>
+<div class="kill"><span class="mono">Step 07</span><h3>Forget the GPU cable</h3><p>The slot alone gives a graphics card 75 W. This one needs about 220 W. Fans spin, lights glow, the screen stays black.</p><button class="btn g" data-kill="power">Try it</button></div>
+</div>
+<footer>PC Build Lab. Every 3D model on this page is generated in code: no downloaded 3D files, no photos. The bench is a simplified teaching model, not a repair manual: check your own board's manual before you build.</footer>
+</main>
+<script type="module" src="app.js"></script>
+</body></html>
